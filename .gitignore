@@ -1,2 +1,26 @@
-/.idea
-/.vscode
+# IDE
+.idea
+.vscode
+*.iml
+
+# Maven
+target/
+pom.xml.tag
+pom.releaseBackup
+
+# Node / Next.js
+mottu-ui/node_modules/
+mottu-ui/.next/
+mottu-ui/out/
+
+# Env and logs
+.env
+.env.local
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads (local)
+uploads/
