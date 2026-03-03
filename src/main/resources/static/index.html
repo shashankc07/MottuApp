@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Our Memories</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #ffe6f0, #1b1022);
+            color: #fdf2f8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.08) 0, transparent 40%),
+                radial-gradient(circle at 90% 10%, rgba(255, 200, 221, 0.18) 0, transparent 55%),
+                radial-gradient(circle at 80% 80%, rgba(150, 64, 159, 0.3) 0, transparent 55%);
+            opacity: 0.7;
+            z-index: -1;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 960px;
+            padding: 24px 16px 48px;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: rgba(20, 10, 30, 0.8);
+            border-radius: 20px;
+            border: 1px solid rgba(251, 207, 232, 0.3);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+            padding: 24px;
+            backdrop-filter: blur(18px);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin: 0 0 4px;
+            letter-spacing: 0.04em;
+        }
+
+        .subtitle {
+            opacity: 0.8;
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(251, 207, 232, 0.3);
+            background: rgba(15, 5, 25, 0.9);
+            color: #fdf2f8;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #fb7185;
+            box-shadow: 0 0 0 1px rgba(251, 113, 133, 0.7);
+        }
+
+        .field {
+            margin-bottom: 12px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 9px 16px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(135deg, #fb7185, #ec4899);
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 14px 30px rgba(236, 72, 153, 0.35);
+            margin-top: 4px;
+        }
+
+        .button:disabled {
+            opacity: 0.6;
+            cursor: default;
+            box-shadow: none;
+        }
+
+        .memories {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .memory-card {
+            background: radial-gradient(circle at top left, rgba(236, 72, 153, 0.35), rgba(24, 12, 40, 0.96));
+            border-radius: 18px;
+            padding: 14px 14px 10px;
+            border: 1px solid rgba(251, 207, 232, 0.55);
+            position: relative;
+        }
+
+        .memory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        .memory-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .memory-date {
+            font-size: 0.75rem;
+            opacity: 0.85;
+        }
+
+        .memory-location {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            margin-top: 2px;
+        }
+
+        .memory-caption {
+            font-size: 0.9rem;
+            margin-top: 6px;
+        }
+
+        .memory-feeling {
+            font-size: 0.85rem;
+            margin-top: 6px;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .memory-media {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: rgba(24, 16, 40, 0.8);
+            border: 1px solid rgba(251, 207, 232, 0.4);
+            font-size: 0.7rem;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .chip {
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.6);
+        }
+
+        .error {
+            color: #fecaca;
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="overlay"></div>
+<div class="container">
+    <div class="card">
+        <h1>Our Memory Garden</h1>
+        <div class="subtitle">A private little timeline of your favourite moments together.</div>
+
+        <div class="grid">
+            <form id="memory-form">
+                <div class="field">
+                    <label for="title">Title</label>
+                    <input id="title" name="title" placeholder="That night at the beach..." required>
+                </div>
+
+                <div class="field">
+                    <label for="date">Date</label>
+                    <input id="date" name="date" type="date" required>
+                </div>
+
+                <div class="field">
+                    <label for="locationName">Place</label>
+                    <input id="locationName" name="locationName"
+                           placeholder="Little café near your street">
+                </div>
+
+                <div class="field">
+                    <label for="caption">Memory</label>
+                    <textarea id="caption" name="caption" placeholder="What happened? What made it special?"></textarea>
+                </div>
+
+                <div class="field">
+                    <label for="feelingNote">How you felt</label>
+                    <textarea id="feelingNote" name="feelingNote"
+                              placeholder="What you would tell them about that moment."></textarea>
+                </div>
+
+                <div class="field">
+                    <label>Media (optional, URLs)</label>
+                    <input id="photoUrl" placeholder="Photo URL">
+                    <input id="videoUrl" style="margin-top:6px" placeholder="Video URL">
+                </div>
+
+                <button id="submit-btn" type="submit" class="button">
+                    <span>Save Memory</span>
+                    <span>❤️</span>
+                </button>
+                <div id="form-error" class="error" style="display:none"></div>
+            </form>
+
+            <div>
+                <div class="field">
+                    <label>Filter</label>
+                    <div class="chips">
+                        <button type="button" class="chip" data-filter="all">All time</button>
+                        <button type="button" class="chip" data-filter="year">This year</button>
+                        <button type="button" class="chip" data-filter="month">This month</button>
+                    </div>
+                </div>
+                <div class="memories" id="memories-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const apiBase = '/api/memories';
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        return d.toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+
+    async function fetchMemories() {
+        const list = document.getElementById('memories-list');
+        list.innerHTML = '<div style="opacity:0.8;font-size:0.85rem;">Loading memories…</div>';
+        try {
+            const response = await fetch(apiBase);
+            if (!response.ok) {
+                throw new Error('Failed to load');
+            }
+            const data = await response.json();
+            if (!Array.isArray(data) || data.length === 0) {
+                list.innerHTML = '<div style="opacity:0.8;font-size:0.85rem;">No memories yet. Start by saving your favourite moment.</div>';
+                return;
+            }
+            list.innerHTML = '';
+            data.forEach(memory => {
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                card.innerHTML = `
+                    <div class="memory-header">
+                        <div>
+                            <div class="memory-title">${memory.title ?? ''}</div>
+                            ${memory.locationName ? `<div class="memory-location">📍 ${memory.locationName}</div>` : ''}
+                        </div>
+                        <div class="memory-date">${formatDate(memory.date)}</div>
+                    </div>
+                    ${memory.caption ? `<div class="memory-caption">${memory.caption}</div>` : ''}
+                    ${memory.feelingNote ? `<div class="memory-feeling">“${memory.feelingNote}”</div>` : ''}
+                    <div class="memory-media">
+                        ${Array.isArray(memory.media) ? memory.media.map(m => `
+                            <span class="badge">
+                                ${m.type === 'PHOTO' ? '📸' : m.type === 'VIDEO' ? '🎥' : '🎧'}
+                                <a href="${m.url}" target="_blank" style="color:#fee2e2;text-decoration:none;">Open</a>
+                            </span>
+                        `).join('') : ''}
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        } catch (e) {
+            list.innerHTML = '<div class="error">Could not load memories. Make sure the backend is running.</div>';
+        }
+    }
+
+    document.getElementById('memory-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errorEl = document.getElementById('form-error');
+        errorEl.style.display = 'none';
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true;
+
+        const title = document.getElementById('title').value.trim();
+        const date = document.getElementById('date').value;
+        const locationName = document.getElementById('locationName').value.trim();
+        const caption = document.getElementById('caption').value.trim();
+        const feelingNote = document.getElementById('feelingNote').value.trim();
+        const photoUrl = document.getElementById('photoUrl').value.trim();
+        const videoUrl = document.getElementById('videoUrl').value.trim();
+
+        const media = [];
+        if (photoUrl) {
+            media.push({ type: 'PHOTO', url: photoUrl });
+        }
+        if (videoUrl) {
+            media.push({ type: 'VIDEO', url: videoUrl });
+        }
+
+        const payload = {
+            title,
+            date,
+            locationName: locationName || null,
+            caption: caption || null,
+            feelingNote: feelingNote || null,
+            latitude: null,
+            longitude: null,
+            media
+        };
+
+        try {
+            const response = await fetch(apiBase, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                const body = await response.json().catch(() => null);
+                const msg = body && body.message ? body.message : 'Could not save memory.';
+                throw new Error(msg);
+            }
+            e.target.reset();
+            await fetchMemories();
+        } catch (err) {
+            errorEl.textContent = err.message || 'Something went wrong.';
+            errorEl.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        fetchMemories();
+        if (!document.getElementById('date').value) {
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById('date').value = today;
+        }
+    });
+</script>
+</body>
+</html>
+

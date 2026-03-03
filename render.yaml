@@ -1,0 +1,20 @@
+# Render.com blueprint for Mottu monolith (optional)
+# 1. Create a PostgreSQL database on Render first, then use "Add to Blueprint" or link it to the service.
+# 2. Or create Web Service manually: New > Web Service > connect repo, Docker, add Postgres and DATABASE_URL.
+
+databases:
+  - name: mottu-db
+    plan: free
+
+services:
+  - type: web
+    name: mottu-app
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mottu-db
+          property: connectionString
