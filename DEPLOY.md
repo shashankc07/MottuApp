@@ -2,37 +2,50 @@
 
 The app runs as a **single service**: Spring Boot serves the API and the Next.js frontend (static files). Your girlfriend can open one URL in her phone’s browser.
 
-## Option 1: Render.com (recommended, free tier)
+## Option 1: Render.com (recommended, free tier) with free Postgres
 
 1. **Push the repo to GitHub** (if not already).
 
 2. **Sign up at [render.com](https://render.com)** (free).
 
-3. **New Web Service**
-   - Dashboard → **New +** → **Web Service**
+3. **Create a free PostgreSQL database**
+   - Dashboard → **New +** → **PostgreSQL**.
+   - **Name:** `mottu-db` (or any name).
+   - **Region:** same as you’ll use for the app.
+   - **Instance type:** **Free**.
+   - Create the database. Open it and go to **Connect** → copy the **Internal Database URL** (use this so the app and DB talk inside Render).
+
+4. **New Web Service**
+   - Dashboard → **New +** → **Web Service**.
    - Connect your GitHub repo and select the Mottu app repo.
 
-4. **Settings**
+5. **Settings**
    - **Name:** `mottu-app` (or any name).
-   - **Region:** choose one close to you.
+   - **Region:** same as the database.
    - **Runtime:** **Docker**.
    - **Dockerfile path:** `./Dockerfile` (repo root).
    - **Instance type:** **Free**.
 
-5. **Environment**
-   - Add variable: **JWT_SECRET** → **Generate** (or type a long random string).
+6. **Environment**
+   - **JWT_SECRET** → **Generate** (or a long random string).
+   - **DATABASE_URL** → paste the **Internal Database URL** from step 3 (starts with `postgresql://`).  
+     Or: in the database’s **Connect** tab, use “Add to Web Service” and pick `mottu-app` so Render sets `DATABASE_URL` for you.
    - Render sets **PORT** automatically; the app uses it.
 
-6. **Deploy**
-   - Click **Create Web Service**. Render builds the Docker image (Node + Java) and runs the JAR.
+7. **Deploy**
+   - Click **Create Web Service**. Render builds the Docker image and runs the JAR.
    - When it’s live, you get a URL like `https://mottu-app-xxxx.onrender.com`.
 
-7. **Share the URL**
+8. **Share the URL**
    - Send her that URL. She opens it on her phone, registers, and uses the app. No install.
+
+**Persistence:** With `DATABASE_URL` set to the Render Postgres URL, users and memories are stored in PostgreSQL and **persist across restarts and redeploys**.
+
+**If you don’t set DATABASE_URL:** The app uses an in-memory H2 database. Data is lost when the app restarts or redeploys (fine for quick local/testing use).
 
 **Free tier notes**
 - Service sleeps after ~15 minutes of no traffic; first open may take 30–60 seconds to wake.
-- Data is stored in an in-memory H2 DB: **it’s reset when the app restarts or redeploys**. For persistent data later you can add a free Postgres DB on Render and switch the app to it.
+- Free Postgres has a 1 GB limit and is suitable for this app.
 
 ---
 
@@ -56,6 +69,22 @@ Open `http://localhost:8080` (or your server’s IP). To use a fixed port and JW
 
 ```bash
 PORT=8080 JWT_SECRET=your-long-secret java -jar target/mottu-app-0.0.1-SNAPSHOT.jar
+```
+
+To use **PostgreSQL** instead of H2, set the datasource (example for local Postgres):
+
+```bash
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/mottu
+export SPRING_DATASOURCE_USERNAME=postgres
+export SPRING_DATASOURCE_PASSWORD=yourpassword
+java -jar target/mottu-app-0.0.1-SNAPSHOT.jar
+```
+
+Or a single URL (e.g. from a cloud provider):
+
+```bash
+export DATABASE_URL=postgresql://user:pass@host:5432/dbname
+java -jar target/mottu-app-0.0.1-SNAPSHOT.jar
 ```
 
 ---
