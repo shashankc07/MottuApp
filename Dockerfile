@@ -2,7 +2,7 @@
 FROM node:20-alpine AS frontend
 WORKDIR /app/mottu-ui
 COPY mottu-ui/package.json mottu-ui/package-lock.json* ./
-RUN npm ci --omit=optional
+RUN npm ci --omit=optional --legacy-peer-deps
 COPY mottu-ui/ .
 RUN npm run build
 
