@@ -9,6 +9,51 @@ const API_BASE =
     ? (process.env.NEXT_PUBLIC_API_BASE ?? "")
     : process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8080";
 
+const MAX_IMAGE_DIMENSION = 1920;
+const JPEG_QUALITY = 0.85;
+
+function compressImage(file: File): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width <= MAX_IMAGE_DIMENSION && height <= MAX_IMAGE_DIMENSION) {
+        width = img.width;
+        height = img.height;
+      } else {
+        if (width > height) {
+          height = Math.round((height * MAX_IMAGE_DIMENSION) / width);
+          width = MAX_IMAGE_DIMENSION;
+        } else {
+          width = Math.round((width * MAX_IMAGE_DIMENSION) / height);
+          height = MAX_IMAGE_DIMENSION;
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Canvas not supported"));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error("Compress failed"))),
+        "image/jpeg",
+        JPEG_QUALITY
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Failed to load image"));
+    };
+    img.src = url;
+  });
+}
+
 const LOVE_QUOTES = [
   "Love is not just looking at each other, it’s looking in the same direction.",
   "In you, I’ve found the love of my life and my closest, truest friend.",
@@ -225,12 +270,13 @@ export default function HomePage() {
     if (!files || files.length === 0) return;
 
     const file = files[0];
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
       setUploadError(null);
       setUploading(true);
+      const blob = await compressImage(file);
+      const formData = new FormData();
+      formData.append("file", blob, "image.jpg");
+
       const res = await fetch(`${API_BASE}/api/memories/media/upload`, {
         method: "POST",
         body: formData,
