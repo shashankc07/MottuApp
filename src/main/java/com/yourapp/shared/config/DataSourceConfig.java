@@ -53,12 +53,32 @@ public class DataSourceConfig {
                 username = userInfo;
             }
         }
-        String jdbcConnectionUrl = "jdbc:postgresql://" + host + ":" + port + "/" + database;
+        String jdbcConnectionUrl = jdbcConnectionUrlWithSsl(databaseUrl, host, port, database);
 
         HikariDataSource ds = new HikariDataSource();
         ds.setJdbcUrl(jdbcConnectionUrl);
         ds.setUsername(username);
         ds.setPassword(password);
+        // Tolerate Render cold start: wait up to 30s for DB to wake when acquiring a connection
+        ds.setConnectionTimeout(30_000);
+        ds.setValidationTimeout(5_000);
+        // Retire connections after 2 min so we don't reuse connections closed by Render during sleep
+        ds.setMaxLifetime(120_000);
+        ds.setIdleTimeout(60_000);
+        ds.setConnectionTestQuery("SELECT 1");
         return ds;
+    }
+
+    private static String jdbcConnectionUrlWithSsl(String databaseUrl, String host, int port, String database) {
+        String base = "jdbc:postgresql://" + host + ":" + port + "/" + database;
+        // Render Postgres requires SSL; append sslmode if not already present
+        if (databaseUrl != null && !databaseUrl.contains("sslmode=")) {
+            return base + "?sslmode=require";
+        }
+        if (databaseUrl != null && databaseUrl.contains("?")) {
+            String query = databaseUrl.substring(databaseUrl.indexOf('?'));
+            return base + query;
+        }
+        return base;
     }
 }

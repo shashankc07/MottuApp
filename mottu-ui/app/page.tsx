@@ -130,28 +130,35 @@ export default function HomePage() {
   });
 
   const fetchMemories = async (overrides?: { from?: string; to?: string }) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const from = overrides?.from ?? fromDate;
-      const to = overrides?.to ?? toDate;
-      const params = new URLSearchParams();
-      if (from) params.append("from", from);
-      if (to) params.append("to", to);
-      const url = params.toString()
-        ? `${API_BASE}/api/memories?${params.toString()}`
-        : `${API_BASE}/api/memories`;
-      const res = await fetch(url, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined
-      });
-      if (!res.ok) throw new Error("Failed to load memories");
-      const data = await res.json();
-      setMemories(data);
-    } catch (e: any) {
-      setError(e.message ?? "Something went wrong");
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    setError(null);
+    const from = overrides?.from ?? fromDate;
+    const to = overrides?.to ?? toDate;
+    const params = new URLSearchParams();
+    if (from) params.append("from", from);
+    if (to) params.append("to", to);
+    const url = params.toString()
+      ? `${API_BASE}/api/memories?${params.toString()}`
+      : `${API_BASE}/api/memories`;
+    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+    const maxAttempts = 3;
+    const delays = [0, 2000, 4000]; // first try immediately, then retry after 2s and 4s (cold start)
+    let lastError: string | null = null;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      if (delays[attempt] > 0) await new Promise((r) => setTimeout(r, delays[attempt]));
+      try {
+        const res = await fetch(url, { headers });
+        if (!res.ok) throw new Error("Failed to load memories");
+        const data = await res.json();
+        setMemories(data);
+        setLoading(false);
+        return;
+      } catch (e: unknown) {
+        lastError = e instanceof Error ? e.message : "Something went wrong";
+      }
     }
+    setError(lastError ?? "Something went wrong");
+    setLoading(false);
   };
 
   // Require auth: redirect to /auth if no token
