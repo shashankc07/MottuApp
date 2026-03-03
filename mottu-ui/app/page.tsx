@@ -661,7 +661,7 @@ export default function HomePage() {
                     {uploading ? "Uploading..." : "Add photo"}
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,.jpg,.JPG,.jpeg,.JPEG"
                       className="hidden"
                       onChange={handleFileChange}
                       disabled={uploading}

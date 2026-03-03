@@ -46,13 +46,18 @@ public class MemoryMediaUploadController {
         }
         String lowerExt = extension.toLowerCase();
 
-        String targetExtension;
+        // Supported: .jpg, .jpeg (any case), .heic, .heif (converted to jpg)
+        boolean isJpeg = lowerExt.equals(".jpg") || lowerExt.equals(".jpeg");
         boolean needsConversion = lowerExt.equals(".heic") || lowerExt.equals(".heif");
+        if (!isJpeg && !needsConversion) {
+            return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).build();
+        }
 
+        String targetExtension;
         if (needsConversion) {
             targetExtension = ".jpg";
         } else {
-            targetExtension = extension.isEmpty() ? ".jpg" : extension;
+            targetExtension = ".jpg"; // normalize jpeg/jpg to .jpg
         }
 
         String filename = UUID.randomUUID() + targetExtension;
